@@ -1,4 +1,4 @@
-const c = @cImport({
+pub const c = @cImport({
     @cInclude("windows.h");
     @cInclude("winuser.h");
 });
@@ -16,7 +16,7 @@ pub fn sendKeyDown(key: c_ushort) void {
         .wScan = 0,
         .time = 0,
         .wVk = key,
-        .dwFlags = 0,
+        .dwFlags = c.KEYEVENTF_EXTENDEDKEY,
         .dwExtraInfo = 0,
     };
 

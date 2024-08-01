@@ -4,8 +4,6 @@ const utils = @import("./utils.zig");
 
 const VK_A = 0x41;
 const VK_D = 0x44;
-const VK_LEFT = 0x25;
-const VK_RIGHT = 0x27;
 
 pub fn main() void {
     var a_down = false;
@@ -41,37 +39,37 @@ pub fn main() void {
 }
 
 fn onADown() void {
-    if (utils.isKeyDown(VK_RIGHT)) {
-        utils.sendKeyUp(VK_RIGHT);
+    if (utils.isKeyDown(utils.c.VK_RIGHT)) {
+        utils.sendKeyUp(utils.c.VK_RIGHT);
     }
 
-    utils.sendKeyDown(VK_LEFT);
+    utils.sendKeyDown(utils.c.VK_LEFT);
 }
 
 fn onAUp() void {
-    if (utils.isKeyDown(VK_LEFT)) {
-        utils.sendKeyUp(VK_LEFT);
+    if (utils.isKeyDown(utils.c.VK_LEFT)) {
+        utils.sendKeyUp(utils.c.VK_LEFT);
     }
 
     if (utils.isKeyDown(VK_D)) {
-        utils.sendKeyDown(VK_RIGHT);
+        utils.sendKeyDown(utils.c.VK_RIGHT);
     }
 }
 
 fn onDDown() void {
-    if (utils.isKeyDown(VK_LEFT)) {
-        utils.sendKeyUp(VK_LEFT);
+    if (utils.isKeyDown(utils.c.VK_LEFT)) {
+        utils.sendKeyUp(utils.c.VK_LEFT);
     }
 
-    utils.sendKeyDown(VK_RIGHT);
+    utils.sendKeyDown(utils.c.VK_RIGHT);
 }
 
 fn onDUp() void {
-    if (utils.isKeyDown(VK_RIGHT)) {
-        utils.sendKeyUp(VK_RIGHT);
+    if (utils.isKeyDown(utils.c.VK_RIGHT)) {
+        utils.sendKeyUp(utils.c.VK_RIGHT);
     }
 
     if (utils.isKeyDown(VK_A)) {
-        utils.sendKeyDown(VK_LEFT);
+        utils.sendKeyDown(utils.c.VK_LEFT);
     }
 }
