@@ -5,6 +5,10 @@ const utils = @import("./utils.zig");
 const VK_A = 0x41;
 const VK_D = 0x44;
 
+// Tracks actual physical keyboard state
+var phys_a_down = false;
+var phys_d_down = false;
+
 pub fn main() void {
     const hhkLowLevelKybd: utils.c.HHOOK = utils.c.SetWindowsHookExA(utils.c.WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
 
@@ -25,30 +29,37 @@ fn LowLevelKeyboardProc(nCode: c_int, wParam: utils.c.WPARAM, lParam: utils.c.LP
             utils.c.WM_KEYUP,
             => {
                 const p: utils.c.PKBDLLHOOKSTRUCT = @as(utils.c.PKBDLLHOOKSTRUCT, lParam);
-                switch (p.*.vkCode) {
-                    VK_A => {
-                        switch (wParam) {
-                            utils.c.WM_KEYDOWN => {
-                                onADown();
-                            },
-                            utils.c.WM_KEYUP => {
-                                onAUp();
-                            },
-                            else => {},
-                        }
-                    },
-                    VK_D => {
-                        switch (wParam) {
-                            utils.c.WM_KEYDOWN => {
-                                onDDown();
-                            },
-                            utils.c.WM_KEYUP => {
-                                onDUp();
-                            },
-                            else => {},
-                        }
-                    },
-                    else => {},
+
+                if (p.*.dwExtraInfo != utils.SEND_INPUT_EXTRA_INFO) {
+                    switch (p.*.vkCode) {
+                        VK_A => {
+                            switch (wParam) {
+                                utils.c.WM_KEYDOWN => {
+                                    phys_a_down = true;
+                                    onADown();
+                                },
+                                utils.c.WM_KEYUP => {
+                                    phys_a_down = false;
+                                    onAUp();
+                                },
+                                else => {},
+                            }
+                        },
+                        VK_D => {
+                            switch (wParam) {
+                                utils.c.WM_KEYDOWN => {
+                                    phys_d_down = true;
+                                    onDDown();
+                                },
+                                utils.c.WM_KEYUP => {
+                                    phys_d_down = false;
+                                    onDUp();
+                                },
+                                else => {},
+                            }
+                        },
+                        else => {},
+                    }
                 }
             },
             else => {},
@@ -59,37 +70,25 @@ fn LowLevelKeyboardProc(nCode: c_int, wParam: utils.c.WPARAM, lParam: utils.c.LP
 }
 
 fn onADown() void {
-    if (utils.isKeyDown(utils.c.VK_RIGHT)) {
-        utils.sendKeyUp(utils.c.VK_RIGHT);
+    if (phys_d_down) {
+        utils.sendKeyUp(VK_D);
     }
-
-    utils.sendKeyDown(utils.c.VK_LEFT);
 }
 
 fn onAUp() void {
-    if (utils.isKeyDown(utils.c.VK_LEFT)) {
-        utils.sendKeyUp(utils.c.VK_LEFT);
-    }
-
-    if (utils.isKeyDown(VK_D)) {
-        utils.sendKeyDown(utils.c.VK_RIGHT);
+    if (phys_d_down) {
+        utils.sendKeyDown(VK_D);
     }
 }
 
 fn onDDown() void {
-    if (utils.isKeyDown(utils.c.VK_LEFT)) {
-        utils.sendKeyUp(utils.c.VK_LEFT);
+    if (phys_a_down) {
+        utils.sendKeyUp(VK_A);
     }
-
-    utils.sendKeyDown(utils.c.VK_RIGHT);
 }
 
 fn onDUp() void {
-    if (utils.isKeyDown(utils.c.VK_RIGHT)) {
-        utils.sendKeyUp(utils.c.VK_RIGHT);
-    }
-
-    if (utils.isKeyDown(VK_A)) {
-        utils.sendKeyDown(utils.c.VK_LEFT);
+    if (phys_a_down) {
+        utils.sendKeyDown(VK_A);
     }
 }
