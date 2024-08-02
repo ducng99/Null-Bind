@@ -6,36 +6,56 @@ const VK_A = 0x41;
 const VK_D = 0x44;
 
 pub fn main() void {
-    var a_down = false;
-    var d_down = false;
+    const hhkLowLevelKybd: utils.c.HHOOK = utils.c.SetWindowsHookExA(utils.c.WH_KEYBOARD_LL, LowLevelKeyboardProc, 0, 0);
 
-    while (true) {
-        if (utils.isKeyDown(VK_A)) {
-            if (!a_down) {
-                a_down = true;
-                onADown();
-            }
-        } else {
-            if (a_down) {
-                a_down = false;
-                onAUp();
-            }
-        }
-
-        if (utils.isKeyDown(VK_D)) {
-            if (!d_down) {
-                d_down = true;
-                onDDown();
-            }
-        } else {
-            if (d_down) {
-                d_down = false;
-                onDUp();
-            }
-        }
-
-        std.os.windows.kernel32.Sleep(1);
+    // Keep this app running until we're told to stop
+    var msg: utils.c.MSG = std.mem.zeroes(utils.c.MSG);
+    while (utils.c.GetMessageA(&msg, null, 0, 0) == 0) {
+        _ = utils.c.TranslateMessage(&msg);
+        _ = utils.c.DispatchMessageA(&msg);
     }
+
+    _ = utils.c.UnhookWindowsHookEx(hhkLowLevelKybd);
+}
+
+fn LowLevelKeyboardProc(nCode: c_int, wParam: utils.c.WPARAM, lParam: utils.c.LPARAM) callconv(.C) utils.c.LRESULT {
+    if (nCode == utils.c.HC_ACTION) {
+        switch (wParam) {
+            utils.c.WM_KEYDOWN,
+            utils.c.WM_KEYUP,
+            => {
+                const p: utils.c.PKBDLLHOOKSTRUCT = @as(utils.c.PKBDLLHOOKSTRUCT, lParam);
+                switch (p.*.vkCode) {
+                    VK_A => {
+                        switch (wParam) {
+                            utils.c.WM_KEYDOWN => {
+                                onADown();
+                            },
+                            utils.c.WM_KEYUP => {
+                                onAUp();
+                            },
+                            else => {},
+                        }
+                    },
+                    VK_D => {
+                        switch (wParam) {
+                            utils.c.WM_KEYDOWN => {
+                                onDDown();
+                            },
+                            utils.c.WM_KEYUP => {
+                                onDUp();
+                            },
+                            else => {},
+                        }
+                    },
+                    else => {},
+                }
+            },
+            else => {},
+        }
+    }
+
+    return utils.c.CallNextHookEx(null, nCode, wParam, lParam);
 }
 
 fn onADown() void {
